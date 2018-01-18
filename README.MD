@@ -1,6 +1,10 @@
 # 🐼 ElasticSearch ORM
 
-One simple All code resides under `src/lib` folder.
+One simple ORM used for ES 5.*/6.* in order to easily manage your data.
+All code resides under `src/lib` folder.
+
+## How to use it?
+Browse the examples section as it contains various cases. The ES connection is exposed therefore sky is the limit here, so you have a lot of flexibility.
 
 ## Components
 ### Connection
@@ -32,7 +36,20 @@ A simple wrapper which uses joi schema validation. It's used for validating data
 Data can be modified for models through event listeners attached on models.
 
 ## Configuration
-The configuration is quite simple and for the moment
+The configuration is quite simple and for the moment it only addresses the ORM and the logger.
+
+Eg.
+```js
+{
+    connection: { // elasticsearch package config
+        host: '10.10.10.1:9200',
+        requestTimeout: 2000
+    },
+    logger: { // passed to the internal logger
+        level: 10
+    }
+}
+```
 
 ## Supported versions
 - ElasticSearch 6.*, ElasticSearch 5.*
