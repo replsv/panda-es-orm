@@ -1,0 +1,30 @@
+{
+  "name": "es-panda-orm",
+  "version": "0.0.1",
+  "description": "ES ORM adding the ability to add models and validation to your models",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/replsv/panda-es-orm.git"
+  },
+  "keywords": [
+    "elasticsearch",
+    "models",
+    "es",
+    "orm",
+    "validation"
+  ],
+  "author": "Gabriel C <shellcooking@gmail.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/replsv/es-orm/issues"
+  },
+  "homepage": "https://github.com/replsv/es-orm#readme",
+  "dependencies": {
+    "elasticsearch": "^14.0.0",
+    "uuid": "^3.1.0"
+  }
+}
