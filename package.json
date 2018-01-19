@@ -25,6 +25,7 @@
   "homepage": "https://github.com/replsv/es-orm#readme",
   "dependencies": {
     "elasticsearch": "^14.0.0",
+    "joi": "^13.1.0",
     "uuid": "^3.1.0"
   }
 }

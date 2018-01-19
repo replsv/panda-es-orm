@@ -1,6 +1,6 @@
 'use strict';
 
-const plugin = require('../index');
+const plugin = require('../../index');
 
 const options = {
     connection: {

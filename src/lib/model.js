@@ -332,6 +332,7 @@ class Model extends EventEmitter{
         }
 
         await this.dispatchEvent('before_validate', {body: body});
+        this.data = body;
         Validate.validate(this);
     }
 
