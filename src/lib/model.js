@@ -96,13 +96,16 @@ class Model extends EventEmitter{
      * Dispatch an event with various data.
      * @param evtName
      * @param evtData
-     * @returns {*}
+     * @returns {Promise}
      */
     dispatchEvent (evtName, evtData) {
 
-        return process.nextTick(() => {
+        const self = this;
 
-            this.emit(Utils.generateEvtName(this.name, evtName), evtData);
+        return new Promise(async (resolve) => {
+
+            await self.emit(Utils.generateEvtName(self.name, evtName), evtData);
+            resolve();
         });
     }
 

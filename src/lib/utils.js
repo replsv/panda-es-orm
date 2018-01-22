@@ -1,5 +1,7 @@
 'use strict';
 
+const Uuidv4 = require('uuid/v4');
+
 class Utils {
     /**
      * Check if obj is undefined.

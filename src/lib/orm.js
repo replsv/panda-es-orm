@@ -115,7 +115,7 @@ class ORM {
             models[name].compile(this._connection, this._logger);
         }
 
-        return models[name];
+        return Object.create(models[name]);
     }
 }
 
