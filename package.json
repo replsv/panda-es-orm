@@ -1,5 +1,5 @@
 {
-  "name": "es-panda-orm",
+  "name": "panda-es-orm",
   "version": "0.0.1",
   "description": "ES ORM adding the ability to add models and validation to your models",
   "main": "index.js",
