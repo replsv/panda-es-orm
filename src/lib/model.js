@@ -317,6 +317,8 @@ class Model extends EventEmitter{
                 type: this.type,
                 id: body[this.idKey]
             });
+
+            return status.result === 'deleted';
         } catch (e) {
             this._logger.error(e);
             return false;
