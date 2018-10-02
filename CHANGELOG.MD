@@ -1,5 +1,10 @@
 # Changelog
 
+0.2.1 - Fixed events and stability release
+```
+- fixed event order
+```
+
 0.1.0 - first version (master)
 ```
 - implemented a small ORM built over ES and the official *elasticseach* plugin
