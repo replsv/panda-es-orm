@@ -165,7 +165,7 @@ class Model extends EventEmitter{
             await this.dispatchEvent('before_find_one', {query: query});
             const response = await Query.execute(this._connection, 'search', query);
             const result = Utils.getResult(response);
-            await this.dispatchEvent('before_find_one', {query: query, result: result});
+            await this.dispatchEvent('after_find_one', {query: query, result: result});
 
             return this.hydrate(result);
         } catch (e) {
