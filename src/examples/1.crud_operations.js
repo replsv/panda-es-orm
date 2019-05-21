@@ -4,8 +4,8 @@ const plugin = require('../../index');
 
 const options = {
     connection: {
-        node: 'http://10.10.10.19:9212',
-        version: 7
+        node: 'http://10.10.10.19:9211',
+        version: 5
     },
     logger: {
         level: 10
@@ -46,6 +46,7 @@ new Product({
 // get one item by query
 (async () => {
 
+    await panda.connect();
     const query = new plugin.query({
         query: {
             term: {
@@ -209,6 +210,39 @@ new Product({
     }
     else {
         console.log('NO DOCUMENT FOUND');
+    }
+    console.log('###############');
+
+    console.log('###############');
+    console.log('### 7 Get collection of items');
+
+    const collection = await panda.getModel('BogusModel').find(new plugin.query({
+        query: {
+            bool: {
+                must: [
+                    {
+                        range: {
+                            id: {
+                                gte: 0
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        _source: ['title', 'description', 'id'],
+        size: 15
+    }));
+    // get one field
+    if (collection.length > 0) {
+        console.log(`Retrieved ${collection.length} documents`);
+        collection.forEach((document) => {
+
+            console.log(`- # ${document.getData('id')} ${document.getData('title')} - ${document.getData('description')}`);
+        })
+    }
+    else {
+        console.log('NO DOCUMENTS RETRIEVED');
     }
     console.log('###############');
 })();
