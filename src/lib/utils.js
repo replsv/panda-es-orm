@@ -94,8 +94,9 @@ class Utils {
      * @param response
      * @returns {Array}
      */
-    static getResults (response) {
+    static getResults (esResponse) {
 
+        const response = Utils.extractResponseForData(esResponse);
         if (Utils.isUndefined(response.hits) || response.hits.total === 0) {
             return [];
         }
@@ -109,11 +110,12 @@ class Utils {
 
     /**
      * Get single result source from response.
-     * @param response
+     * @param esResponse
      * @returns {{}}
      */
-    static getResult (response) {
+    static getResult (esResponse) {
 
+        const response = Utils.extractResponseForData(esResponse);
         if (Utils.isUndefined(response.hits) || response.hits.total === 0) {
             return {};
         }
@@ -143,6 +145,28 @@ class Utils {
     static generateEvtName (modelName, evt) {
 
         return modelName.toLowerCase() + '_' + evt;
+    }
+
+    /**
+     * Extract relevant data from esResponse.
+     * 
+     * @param {object} esResponse 
+     * @returns {{}}
+     */
+    static extractResponseForData (esResponse) {
+        
+        let response;
+        if (esResponse.body) {
+            response = esResponse.body;
+        } else {
+            response = esResponse;
+        }
+
+        if (!Utils.isUndefined(response.hits.total) && !Utils.isUndefined(response.hits.total.value)) { // ES7
+            response.hits.total = response.hits.total.value;
+        }
+
+        return response;
     }
 }
 

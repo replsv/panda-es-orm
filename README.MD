@@ -1,6 +1,6 @@
 # 🐼 ElasticSearch ORM
 
-One simple ORM used for ES 5.*/6.* in order to easily manage your data.
+One simple ORM used for ES 5.*/6.*/7.* in order to easily manage your data.
 All code resides under `src/lib` folder.
 
 ## How to use it?
@@ -43,6 +43,7 @@ Eg.
 {
     connection: { // elasticsearch package config
         host: '10.10.10.1:9200',
+        version: 7, // ES version (5, 6 or 7 are currently supported) / default version is 7 as of 1.0.0
         requestTimeout: 2000
     },
     logger: { // passed to the internal logger
@@ -52,11 +53,12 @@ Eg.
 ```
 
 ## Supported versions
-- ElasticSearch 6.*, ElasticSearch 5.*
+- ElasticSearch 7.*, ElasticSearch 6.* -> note: for 
 - NodeJS >=m 6.4.0
 
 ## Changelog
 See the changelog file.
 
 ## Current versions
+1.0.0 - added support for ES7; updated other dependencies used for validation of models
 0.1.0 - first version (master)

@@ -6,40 +6,65 @@ const Validate = require('./validate');
 const Query = require('./query');
 const EventEmitter = require('events').EventEmitter;
 
-class Model extends EventEmitter{
+/**
+ * Read value from options object.
+ * @param {object} options 
+ * @param {string} name 
+ * @param {boolean} mandatory 
+ * @param {mixed} defaultValue 
+ */
+function readOption(options = {}, name, mandatory = true, defaultValue) {
+    let value = defaultValue;
+    if (Utils.isUndefined(options[name])) {
+        if (mandatory) {
+            throw new Error(`Invalid model configuration - Option ${name} is mandatory`);
+        }
+    } else {
+        value = options[name];
+    }
+    return value;
+}
+
+class Model extends EventEmitter {
 
     /**
      * Constructor.
-     * @param name
-     * @param index
-     * @param type
-     * @param idKey
-     * @param validationSchema
+     * @param options
+     * 
+     * Options:
+     * - name -> model name
+     * - index
+     * - type
+     * - idKey
+     * - validationSchema
      */
-    constructor (name, index, type, idKey = 'id', validationSchema = null) {
+    constructor (options = {}) {
 
         super();
-        this._name = name;
-        this._index = index;
-        this._type = type || Utils.generateTypeByDate();
-        this._idKey = idKey;
+        this._name = readOption(options, 'name');
+        this._index = readOption(options, 'index');
+        this._type = readOption(options, 'type', false, Utils.generateTypeByDate()); // deprecated for ES7+ 
+        this._idKey = readOption(options, 'idKey', false, '_id');
         this._connection = null;
+        this._version = null;
         this._data = null;
         this._compiled = false;
-        this._validationSchema = validationSchema;
+        this._validationSchema = readOption(options, 'validationSchema', false, null);
 
         ORM.bindModel(this);
     }
 
     /**
      * Compile model and inject connection.
-     * @param connection
-     * @param logger
+     * @param {*} connection 
+     * @param {*} version 
+     * @param {*} logger 
      */
-    compile (connection, logger) {
+    compile (connection, version, logger) {
 
         this.check();
         this._connection = connection;
+        this._version = version;
         this._compiled = true;
         this._logger = logger;
     }
@@ -49,7 +74,11 @@ class Model extends EventEmitter{
      */
     check () {
 
-        ['_name', '_index', '_type', '_idKey'].forEach((key) => {
+        const fields = ['_name', '_index', '_idKey'];
+        if (this.version < 7) {
+            fields.push('_type');
+        }
+        fields.forEach((key) => {
 
             if (Utils.isEmpty(this[key]) || !Utils.isString(this[key])) {
                 throw new Error('Invalid model property: ' + key);
@@ -124,9 +153,11 @@ class Model extends EventEmitter{
         try {
             const query = {
                 index: this.index,
-                type: this.type,
                 body: conditions.body
             };
+            if (this.version < 7) {
+                query.type = this.type;
+            }
 
             await this.dispatchEvent('before_find', {query: query});
             const response = await Query.execute(this._connection, 'search', query);
@@ -158,9 +189,11 @@ class Model extends EventEmitter{
         try {
             const query = {
                 index: this.index,
-                type: this.type,
                 body: conditions.body
             };
+            if (this.version < 7) {
+                query.type = this.type;
+            }
 
             await this.dispatchEvent('before_find_one', {query: query});
             const response = await Query.execute(this._connection, 'search', query);
@@ -186,10 +219,12 @@ class Model extends EventEmitter{
             body.query['term'][this.idKey] = {value: value};
             const query = {
                 index: this.index,
-                type: this.type,
                 body: (new Query(body)).body,
                 size: 1
             };
+            if (this.version < 7) {
+                query.type = this.type;
+            }
 
             await this.dispatchEvent('before_find_one_by_id', {query: query});
             const response = await Query.execute(this._connection, 'search', query);
@@ -223,13 +258,15 @@ class Model extends EventEmitter{
             await this.validate(body);
             const query = {
                 index: this.index,
-                type: this.type,
                 id: Utils.generateId(body, this.idKey), // auto-generated UUIDv4
                 body: body,
             };
+            if (this.version < 7) {
+                query.type = this.type;
+            }
 
             const response = await Query.execute(this._connection, 'create', query);
-            body._id = response._id; // attach ES id as it might be needed if it's randomly generated
+            body._id = response.body._id; // attach ES id as it might be needed if it's randomly generated
             return this.hydrate(body);
         } catch (e) {
             this._logger.error(e);
@@ -255,30 +292,33 @@ class Model extends EventEmitter{
 
         try {
             await this.validate(body);
-            const exists = await Query.execute(this._connection, 'exists', {
+            const operationQuery = {
                 index: this.index,
-                type: this.type,
                 id: body[this.idKey]
-            });
+            };
+            if (this.version < 7) {
+                operationQuery.type = this.type;
+            }
+
+            const exists = await Query.execute(this._connection, 'exists', operationQuery);
             if (!exists) {
                 throw "Document does not exist " + body[this.idKey];
             }
             if (refresh) {
-                await Query.execute(this._connection, 'delete', {
-                    index: this.index,
-                    type: this.type,
-                    id: body[this.idKey]
-                });
+                await Query.execute(this._connection, 'delete', operationQuery);
 
                 return this.create();
             }
             else {
-                await Query.execute(this._connection, 'index', {
+                const indexQuery = {
                     index: this.index,
-                    type: this.type,
                     id: body[this.idKey],
                     body: body
-                });
+                };
+                if (this.version < 7) {
+                    indexQuery.type = this.type;
+                }
+                await Query.execute(this._connection, 'index', indexQuery);
 
                 return this;
             }
@@ -304,19 +344,18 @@ class Model extends EventEmitter{
         }
 
         try {
-            const exists = await Query.execute(this._connection, 'exists', {
+            const operationQuery =  {
                 index: this.index,
-                type: this.type,
                 id: body[this.idKey]
-            });
+            };
+            if (this.version < 7) {
+                operationQuery.type = this.type;
+            }
+            const exists = await Query.execute(this._connection, 'exists', operationQuery);
             if (!exists) {
                 throw "Document does not exist " + body[this.idKey];
             }
-            const status = await Query.execute(this._connection, 'delete', {
-                index: this.index,
-                type: this.type,
-                id: body[this.idKey]
-            });
+            const status = await Query.execute(this._connection, 'delete', operationQuery);
 
             return status.result === 'deleted';
         } catch (e) {
@@ -412,6 +451,22 @@ class Model extends EventEmitter{
      */
     set validationSchema (value) {
         this._validationSchema = value;
+    }
+
+    /**
+     * Setter
+     * @param value
+     */
+    set version (value) {
+        this._version = value;
+    }
+
+        /**
+     * Getter
+     * @returns {*}
+     */
+    get version () {
+        return this._version;
     }
 }
 

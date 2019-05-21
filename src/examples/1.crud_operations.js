@@ -4,8 +4,8 @@ const plugin = require('../../index');
 
 const options = {
     connection: {
-        host: '10.10.10.19:9204',
-        requestTimeout: 2000
+        node: 'http://10.10.10.19:9212',
+        version: 7
     },
     logger: {
         level: 10
@@ -19,7 +19,9 @@ const panda = new plugin.orm(options);
 class Product extends plugin.model {
 
 }
-new Product('ProductModel', 'products', 'store_1', 'sku');
+new Product({
+    name: 'ProductModel', index: 'products', idKey: 'sku'
+});
 
 // get one item by configured id
 (async () => {
@@ -125,7 +127,7 @@ new Product('ProductModel', 'products', 'store_1', 'sku');
         console.log('Listening for: productmodel_before_find');
         console.log('Data: ' + JSON.stringify(evtData));
         // modify the queried ES type
-        evtData.query.type = 'store_2';
+        evtData.query.index = 'products_old';
     });
 
     let responseObject = await modelInstance.findOneById('JUC020593');
@@ -147,8 +149,17 @@ new Product('ProductModel', 'products', 'store_1', 'sku');
 
 // create a new item
 (async () => {
+    
+    await panda.connect();
 
-    new plugin.model('BogusModel', 'bogus', 'type1', 'id');
+    // declare model
+    new plugin.model({
+        name: 'BogusModel',
+        index: 'bogus',
+        idKey: 'id'
+    });
+
+    // 
     const modelInstance = panda.getModel('BogusModel');
 
     // attach a listener
@@ -160,32 +171,27 @@ new Product('ProductModel', 'products', 'store_1', 'sku');
         evtData.body.createdAt = new Date();
     });
 
-    const responseObject = await modelInstance.create({id: Math.random(), title: 'Test', description: 'Lorem ipsum...'});
-
     console.log('###############');
     console.log('### 5 Test creating a new document');
 
+    const responseObject = await modelInstance.create({id: Math.random(), title: 'Test', description: 'Lorem ipsum...'});
     if (responseObject) {
-        console.log(responseObject.data);
+        console.log('DOCUMENT SAVED', JSON.stringify(responseObject));
     }
     else {
-        console.log('NO DOCUMENT SAVED');
+        console.log('NO DOCUMENT SAVED', responseObject);
     }
     console.log('###############');
-})();
-
-// update an item
-(async () => {
-
-    new plugin.model('BogusModel', 'bogus', 'type1', 'id');
-    const modelInstance = panda.getModel('BogusModel');
 
     const hydratedModel = await modelInstance.findOne(new plugin.query({
         query: {
-            match: {
-                title: 'Test'
+            term: {
+                title: {
+                    value: 'test'
+                }
             }
-        }
+        },
+        size: 1
     }));
 
     console.log('###############');
@@ -205,7 +211,4 @@ new Product('ProductModel', 'products', 'store_1', 'sku');
         console.log('NO DOCUMENT FOUND');
     }
     console.log('###############');
-
 })();
-
-// delete an item

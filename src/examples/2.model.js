@@ -1,7 +1,7 @@
 'use strict';
 
 const plugin = require('../../index');
-const Joi = require('joi');
+const Joi = require('@hapi/joi');
 
 /**
  * Define a joi-powered validation

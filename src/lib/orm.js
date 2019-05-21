@@ -21,29 +21,30 @@ class ORM {
     constructor (options) {
         this._options = options;
         this._logger = new Logger(options.logger);
+        this._version = 7;
 
         if (Utils.isUndefined(options.connection)) {
-            throw new Error('Invalid options')
+            throw new Error('Invalid options');
         }
 
-        this.connect();
+        if (!Utils.isUndefined(options.connection.version)) {
+            this._version = parseInt(options.connection.version);
+        }
     }
 
     /**
      * Connect to ES.
      * @returns {Promise.<void>}
      */
-    connect () {
+    async connect () {
 
-        this._connection = Connection.createConnection(this._options.connection);
-        this._connection.ping({}, (err) => {
-
-            if (err) {
-                this._logger.alert(err);
-            } else {
-                this._logger.info('Connected to ES');
-            }
-        })
+        this._connection = await Connection.createConnection(this._options.connection);
+        try {
+            await this._connection.ping();
+            this._logger.info('Connected to ES');
+        } catch (e) {
+            this._logger.alert(e);
+        }
     }
 
     /**
@@ -96,7 +97,6 @@ class ORM {
         if (!Utils.isUndefined(models[name])) {
             return models[name];
         }
-
         models[name] = modelInstance;
     }
 
@@ -112,7 +112,7 @@ class ORM {
         }
 
         if (!models[name].compiled) {
-            models[name].compile(this._connection, this._logger);
+            models[name].compile(this._connection, this._version, this._logger);
         }
 
         return Object.create(models[name]);

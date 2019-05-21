@@ -1,6 +1,6 @@
 {
   "name": "panda-es-orm",
-  "version": "0.2.1",
+  "version": "1.0.0",
   "description": "ES ORM adding the ability to add models and validation to your models",
   "main": "index.js",
   "scripts": {
@@ -24,8 +24,10 @@
   },
   "homepage": "https://github.com/replsv/es-orm#readme",
   "dependencies": {
-    "elasticsearch": "^14.0.0",
-    "joi": "^13.1.0",
+    "es5": "npm:@elastic/elasticsearch@^5.0",
+    "es6": "npm:@elastic/elasticsearch@^6.7",
+    "es7": "npm:@elastic/elasticsearch@^7.0",
+    "@hapi/joi": "^15.0.3",
     "uuid": "^3.1.0"
   }
 }
